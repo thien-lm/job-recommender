@@ -2,7 +2,9 @@ import requests
 import json
 
 
-PAGES_TO_CLONE = 2
+START_PAGE_TO_CLONE = int(input("press started page you want to clone: "))
+END_PAGE_TO_CLONE = int(input("press end page you want to clone: "))
+
 API_END_POINT = "http://api.topdev.vn/td/v2/jobs?fields[job]=id,slug,title,salary,company,extra_skills,\
     skills_str,skills_arr,skills_ids,job_types_str,job_levels_str,job_levels_arr,job_levels_ids,addresses,\
         status_display,detail_url,job_url,salary,published,refreshed,applied,candidate,requirements_arr,packages,\
@@ -31,7 +33,7 @@ def get_jobs_from_url(index, url):
             data = response.json()
 
             # Lưu dữ liệu vào một file JSON
-            with open(f'./scraped_data/datajobs_page_{index}.json', 'w') as json_file:
+            with open(f'./scraped_data/jobs_page_{index}.json', 'w') as json_file:
                 json.dump(data, json_file)
 
             print("Dữ liệu đã được lưu vào file data.json.")
@@ -40,10 +42,18 @@ def get_jobs_from_url(index, url):
     except:
         print("some bug has occured, please try again later")
 
-for i in range(1, PAGES_TO_CLONE + 1):
-    url = f"http://api.topdev.vn/td/v2/jobs?fields[job]=id,slug,title,salary,company,extra_skills,\
-    skills_str,skills_arr,skills_ids,job_types_str,job_levels_str,job_levels_arr,job_levels_ids,addresses,\
-        status_display,detail_url,job_url,salary,published,refreshed,applied,candidate,requirements_arr,packages,\
-            benefits,content,features,is_free,is_basic,is_basic_plus,is_distinction&fields[company]=slug,tagline/ ,\
-                addresses,skills_arr,industries_arr,industries_str,image_cover,image_galleries,benefits&page={i}&locale=vi_VN"
-    get_jobs_from_url(i, url)
+def clone(START_PAGE_TO_CLONE, END_PAGE_TO_CLONE):
+    if START_PAGE_TO_CLONE <= 0:
+        START_PAGE_TO_CLONE = 1
+    if END_PAGE_TO_CLONE - START_PAGE_TO_CLONE > 100:
+        print("warning!!! maximum pages to clone is 100, automated to set end page to proper range")
+        END_PAGE_TO_CLONE = START_PAGE_TO_CLONE + 100
+    for i in range(START_PAGE_TO_CLONE, END_PAGE_TO_CLONE + 1):
+        url = f"http://api.topdev.vn/td/v2/jobs?fields[job]=id,slug,title,salary,company,extra_skills,\
+        skills_str,skills_arr,skills_ids,job_types_str,job_levels_str,job_levels_arr,job_levels_ids,addresses,\
+            status_display,detail_url,job_url,salary,published,refreshed,applied,candidate,requirements_arr,packages,\
+                benefits,content,features,is_free,is_basic,is_basic_plus,is_distinction&fields[company]=slug,tagline/ ,\
+                    addresses,skills_arr,industries_arr,industries_str,image_cover,image_galleries,benefits&page={i}&locale=vi_VN"
+        get_jobs_from_url(i, url)
+
+clone(START_PAGE_TO_CLONE, END_PAGE_TO_CLONE)

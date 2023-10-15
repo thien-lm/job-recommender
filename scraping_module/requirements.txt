@@ -1,1 +1,4 @@
 selenium
+request
+json
+pymongo

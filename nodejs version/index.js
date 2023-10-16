@@ -6,16 +6,17 @@ const {connect} = require('./db-config')
 const {getAllJobs} = require('./repository/JobRepository')
 const app = express();
 const calculateDistance = require('./EstimatingDistance')
-
+const {saveUserInfo} = require('./repository/UserInfoRepository')
 
 app.use(bodyParser.json());
 connect()
 // API endpoint để gợi ý công việc dựa trên mô tả công việc
 app.post('/suggest-job', async (req, res) => {
+    const userJob = req.body; 
     const jobData = await getAllJobs(req, res);
-    const userJob = req.body;
+    //luu du lieu nguoi dung nhap
+    saveUserInfo(req, res)
     const cosineSimilarityMatrix = [];
-    console.log(userJob)
     //duyet qua toan bo job
     for( let i = 0; i < jobData.length; i++) {
         let job = jobData[i]
@@ -34,7 +35,7 @@ app.post('/suggest-job', async (req, res) => {
                 // console.log(distance)
                 // sigma = 1 //sigma cang cao su khac biet khoang cach cang nho
                 // similarity = 3*Math.exp(-Math.pow(distance, 2) / (2 * Math.pow(sigma, 2)));
-                similarity = 5*calculateCosineSimilarityFromRawString(job[key], userJob[key], true)
+                similarity = 10*calculateCosineSimilarityFromRawString(job[key], userJob[key], true)
             }
             //xu li cho requirements
             //format: <edu, exp>

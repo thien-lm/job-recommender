@@ -1,8 +1,10 @@
 const mongoose = require('mongoose');
+require('dotenv').config();
+const dbHost = process.env.DB_HOST;
 
 async function connect() {
     try {
-        await mongoose.connect('mongodb://localhost:27017/job-recommender-database');
+        await mongoose.connect(dbHost);
         console.log('connect successfully');
     } catch (error) {
         console.log('connect failed');

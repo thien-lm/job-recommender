@@ -19,10 +19,10 @@ async function getCoordinates(address) {
     }
 }
 
-async function main() {
+async function calculateDistance(address1, address2) {
     // Địa chỉ của hai địa điểm cần tính khoảng cách
-    const address1 = "Dai hoc Bach Khoa Ha Noi"
-    const address2 = "trường mầm non thành đông"
+    // const address1 = "Dai hoc Bach Khoa Ha Noi"
+    // const address2 = "trường mầm non thành đông"
 
     // Lấy tọa độ của các địa chỉ
     const coords1 = await getCoordinates(address1);
@@ -31,10 +31,16 @@ async function main() {
     if (coords1 && coords2) {
         // Tính khoảng cách giữa hai tọa độ sử dụng geolib
         const distance = geolib.getDistance(coords1, coords2) / 1000; // Kết quả sẽ ở đơn vị kilometers
-        console.log(`Khoảng cách giữa hai địa điểm là: ${distance.toFixed(2)} kilometers`);
+        // console.log(`Khoảng cách giữa hai địa điểm là: ${distance.toFixed(2)} kilometers`);
+        return distance.toFixed(2)
     } else {
         console.log("Không thể xác định tọa độ cho ít nhất một trong hai địa chỉ.");
     }
 }
 
-main();
+const address1 = "Dai hoc Bach Khoa Ha Noi"
+const address2 = "trường mầm non thành đông"
+
+calculateDistance(address1, address2);
+
+module.exports = calculateDistance;

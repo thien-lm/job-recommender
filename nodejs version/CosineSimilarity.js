@@ -22,12 +22,20 @@ const { mod } = require("mathjs");
 
 //caculate based on raw string
 
-const calculateCosineSimilarityFromRawString = (str1, str2) => {
+const calculateCosineSimilarityFromRawString = (str1, str2, isAddress = false) => {
     str1 = stringFilter(str1)
     str2 = stringFilter(str2)
     // console.log(str1, str2)
-    const str1Words = str1.trim().split('').map(omitPunctuations).map(toLowercase);
-    const str2Words = str2.trim().split('').map(omitPunctuations).map(toLowercase);
+    let str1Words;
+    let str2Words;
+    if(!isAddress) {
+      str1Words = str1.trim().split('').map(omitPunctuations).map(toLowercase);
+      str2Words = str2.trim().split('').map(omitPunctuations).map(toLowercase);      
+    }
+    else {
+      str1Words = str1.trim().split(' ').map(omitPunctuations).map(toLowercase);
+      str2Words = str2.trim().split(' ').map(omitPunctuations).map(toLowercase);    
+    }
     //console.log(str1Words, str2Words)
     const allWordsUnique = Array.from(new Set(str1Words.concat(str2Words)));
     const str1Vector = calcTfIdfVectorForDoc(str1Words, [str2Words], allWordsUnique);
@@ -42,7 +50,7 @@ const calculateCosineSimilarityFromRawString = (str1, str2) => {
 
 // console.log('Cosine similarity', cosineSimilarity(str1Vector, str2Vector));
 const stringFilter = (sourceString) => {
-    return outString = sourceString.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi, '');
+    return outString = sourceString ? sourceString.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi, ''): "no information gain";
 }
 
 

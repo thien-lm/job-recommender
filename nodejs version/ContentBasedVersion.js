@@ -2,19 +2,17 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const similarity = require('cosine-similarity');
 const calculateCosineSimilarityFromRawString = require('./CosineSimilarity')
-
+const {connect} = require('./db-config')
+const {getAllJobs} = require('./repository/JobRepository')
 const app = express();
+const calculateDistance = require('./EstimatingDistance')
+
+
 app.use(bodyParser.json());
-
-// Mô phỏng dữ liệu công việc
-const jobData = [
-    { id: 1, title: 'Software Engineer', description: 'Job description for Software Engineer...', exp: "4+ years" },
-    { id: 2, title: 'Data Scientist', description: 'Job description for Data Scientist...', exp: "3+ years" },
-    // Thêm các công việc khác ở đây
-];
-
+connect()
 // API endpoint để gợi ý công việc dựa trên mô tả công việc
-app.post('/suggest-job', (req, res) => {
+app.post('/suggest-job', async (req, res) => {
+    const jobData = await getAllJobs(req, res);
     const userJob = req.body;
     const cosineSimilarityMatrix = [];
     console.log(userJob)
@@ -25,15 +23,42 @@ app.post('/suggest-job', (req, res) => {
         cosineSimilarityMatrix.push([jobData[i].id]);
         //duyet qua cac key trong object
         for (let key in jobData[i]) {
-            if(key == "id") continue;
+            if(key == "id" || key == "detailURL") continue;
             let similarity = calculateCosineSimilarityFromRawString(job[key], userJob[key])
+            if(key == "major") {
+                similarity *= 4
+            }
+            //tinh do do tuong dong giua hai diem tren ban do
+            if(key === "address") {
+                // let distance = await calculateDistance(userJob[key], job[key])
+                // console.log(distance)
+                // sigma = 1 //sigma cang cao su khac biet khoang cach cang nho
+                // similarity = 3*Math.exp(-Math.pow(distance, 2) / (2 * Math.pow(sigma, 2)));
+                similarity = 5*calculateCosineSimilarityFromRawString(job[key], userJob[key], true)
+            }
+            //xu li cho requirements
+            //format: <edu, exp>
+            if(key === "experience") {
+                let requirements = userJob[key]
+                let [education, experience] = requirements.split(",")
+                if(requirements.includes(education) && requirements.includes(experience)) {
+                    similarity = 2;
+                }
+                else if(requirements.includes(education) || requirements.includes(experience)) {
+                    similarity = 1;
+                }
+                else {
+                    similarity = 0;
+                }
+            }
+            
             cosineSimilarityMatrix[i].push(similarity)
         }
     }
 
     //tinh tong cua do tuong dong
     /// tuong lai them weight vao tung property
-    const sumSimilarities = []
+    let sumSimilarities = []
     for(let jobSimilarityMatrix of cosineSimilarityMatrix) {
         let sum = 0;
         for(let i = 0; i < jobSimilarityMatrix.length; i++) {
@@ -42,16 +67,30 @@ app.post('/suggest-job', (req, res) => {
         }
         sumSimilarities.push({id: jobSimilarityMatrix[0], sumSimilarity: sum});
     }
+    sumSimilarities = sumSimilarities.sort((a, b) => b["sumSimilarity"] - a["sumSimilarity"]);
+    jobsToReturn = sumSimilarities.slice(0, 5)
+ 
+    //chon cong viec co sum similarity cao nhat ( hoac top cao nhat ) trong sumSimilarities
+    //const maxSimilarity = sumSimilarities.reduce((max, obj) => (obj.sumSimilarity > max.sumSimilarity ? obj : max), sumSimilarities[0]);
+    //dua ra cong viec do
+    // console.log(maxSimilarity)
+// Thuộc tính bạn muốn so sánh (ví dụ: 'id')
+    let propertyName = 'id';
 
-
-    // const similarities = jobData.map(job => calculateCosineSimilarityFromRawString(job.description, jobDescription));
+    // Lọc các đối tượng có chung thuộc tính trong hai mảng
+    let jobs = jobData.filter(obj1 => jobsToReturn.some(obj2 => obj1[propertyName] === obj2[propertyName]));
+    // const jobs = jobData.map(job => {
+    //     for(let jobObject of jobsToReturn) {
+    //         if(jobObject.id == job.id) return job;
+    //     }
+    // })
     
 
     // // Chọn công việc có sự tương đồng cao nhất
     // const recommendedJobIndex = similarities.indexOf(Math.max(...similarities));
     // const recommendedJob = jobData[recommendedJobIndex];
 
-    res.json(sumSimilarities);
+    res.json(jobs);
 });
 
 const PORT = 3000;

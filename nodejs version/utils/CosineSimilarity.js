@@ -1,27 +1,5 @@
 const { mod } = require("mathjs");
 
-// const str1 = 'Job description for Data Scientist';
-// const str2 = 'Job description for Software Engineer';
-
-// //
-// // Preprocess strings and combine words to a unique collection
-// //
-
-// const str1Words = str1.trim().split('').map(omitPunctuations).map(toLowercase);
-// const str2Words = str2.trim().split('').map(omitPunctuations).map(toLowercase);
-// const allWordsUnique = Array.from(new Set(str1Words.concat(str2Words)));
-
-
-
-//
-// Calculate IF-IDF algorithm vectors
-//
-
-// const str1Vector = calcTfIdfVectorForDoc(str1Words, [str2Words], allWordsUnique);
-// const str2Vector = calcTfIdfVectorForDoc(str2Words, [str1Words], allWordsUnique);
-
-//caculate based on raw string
-
 const calculateCosineSimilarityFromRawString = (str1, str2, isAddress = false) => {
     str1 = stringFilter(str1)
     str2 = stringFilter(str2)
@@ -44,19 +22,9 @@ const calculateCosineSimilarityFromRawString = (str1, str2, isAddress = false) =
     return cosineSimilarity(str1Vector, str2Vector)
 }
 
-//
-// Main
-//
-
-// console.log('Cosine similarity', cosineSimilarity(str1Vector, str2Vector));
 const stringFilter = (sourceString) => {
     return outString = sourceString ? sourceString.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi, ''): "no information gain";
 }
-
-
-//
-// Main function
-//
 
 function cosineSimilarity(vec1, vec2) {
   const dotProduct = vec1.map((val, i) => val * vec2[i]).reduce((accum, curr) => accum + curr, 0);
@@ -67,11 +35,6 @@ function cosineSimilarity(vec1, vec2) {
 };
 
 module.exports = calculateCosineSimilarityFromRawString
-
-
-//
-// tf-idf algorithm implementation (https://en.wikipedia.org/wiki/Tf%E2%80%93idf)
-//
 
 function calcTfIdfVectorForDoc(doc, otherDocs, allWordsSet) {
   return Array.from(allWordsSet).map(word => {
@@ -91,12 +54,6 @@ function idf(word, doc, otherDocs) {
 
   return (1 + otherDocs.length) / docsContainingWord.length;
 };
-
-
-
-//
-// Helper functions
-//
 
 function omitPunctuations(word) {
   return word.replace(/[\!\.\,\?\-\?]/gi, '');

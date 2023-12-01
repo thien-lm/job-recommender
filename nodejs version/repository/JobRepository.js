@@ -10,13 +10,13 @@ const convertOriginalJobObject = (job) => {
     convertedJob.id = job.id
     convertedJob.title = job.title
     convertedJob.address = job.addresses.full_addresses[0]
-    convertedJob.salary = job.salary.value
+    convertedJob.salary = job.salary.min
     convertedJob.experience = job.requirements_arr.flatMap(obj => Object.values(obj?.value)).join(" ");
     convertedJob.typeOfCompany = job.company.industries_str
     convertedJob.level = job.job_levels_str
     convertedJob.jobType = job.job_types_str // in office or online
     convertedJob.major = job.skills_arr.join(" ")
-    convertedJob.refreshedTime = job.refreshed.date_time
+    convertedJob.refreshedTime = job.refreshed.date
     convertedJob.detailURL = job.detail_url
     return convertedJob
 

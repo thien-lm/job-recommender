@@ -7,8 +7,8 @@ const calculateCosineSimilarityFromRawString = (str1, str2, isAddress = false) =
     let str1Words;
     let str2Words;
     if(!isAddress) {
-      str1Words = str1.trim().split('').map(omitPunctuations).map(toLowercase);
-      str2Words = str2.trim().split('').map(omitPunctuations).map(toLowercase);      
+      str1Words = str1.trim().split(' ').map(omitPunctuations).map(toLowercase);
+      str2Words = str2.trim().split(' ').map(omitPunctuations).map(toLowercase);      
     }
     else {
       str1Words = str1.trim().split(' ').map(omitPunctuations).map(toLowercase);
@@ -19,7 +19,7 @@ const calculateCosineSimilarityFromRawString = (str1, str2, isAddress = false) =
     const str1Vector = calcTfIdfVectorForDoc(str1Words, [str2Words], allWordsUnique);
     const str2Vector = calcTfIdfVectorForDoc(str2Words, [str1Words], allWordsUnique);
     // console.log(str1Vector, str2Vector)
-    return cosineSimilarity(str1Vector, str2Vector)
+    return cosineSimilarity(str1Vector, str2Vector) ? cosineSimilarity(str1Vector, str2Vector) : 0
 }
 
 const stringFilter = (sourceString) => {

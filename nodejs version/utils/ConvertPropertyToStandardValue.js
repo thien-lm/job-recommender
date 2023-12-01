@@ -36,8 +36,14 @@ function convertLevel(level) {
 }
 
 function convertExperience(exp) {
-  const numericValues = inputString.match(/\d+/g);
-  const result = numericValues ? Number(numericValues.join("")) : 0;
+  const firstDigitMatch = exp.match(/\d/); // Use \d to match a single digit
+  const result = firstDigitMatch ? Number(firstDigitMatch[0]) : 0;
   return result;
 }
 
+
+module.exports = {
+  convertLevel,
+  convertExperience,
+  convertSalary,
+};

@@ -4,110 +4,127 @@ const calculateCosineSimilarityFromRawString = require("./utils/CosineSimilarity
 const { connect } = require("./db-config");
 const { getAllJobs } = require("./repository/JobRepository");
 const app = express();
-const calculateDistance = require("./utils/EstimatingDistance");
+const calculateDistance = require("./utils/EstimatingDistanceBetweenTwoLocation");
 const { saveUserInfo } = require("./repository/UserInfoRepository");
 const cors = require("cors");
+const {
+  calculateTitle,
+  calculateAddress,
+  calculateLevel,
+  calculateSalary,
+  calculateExperience,
+  calculateTimeDistance,
+} = require("./utils/CalculatingValueForDecisionTable");
+const {
+  convertSalary,
+  convertExperience,
+  convertLevel,
+} = require("./utils/ConvertPropertyToStandardValue");
+const JobDecisionClass = require("./JobDecisionClass");
 
 app.use(bodyParser.json());
 connect();
 
 let jobData;
+const weight = [0.3, 0.2, 0.2, 0.15, 0.1, 0.05];
 // API endpoint để gợi ý công việc dựa trên mô tả công việc
 app.post("/suggest-job", async (req, res) => {
   const userJob = req.body;
   //neu da co danh sach cong viec thi khong lay ra tu database nua
-  if(!jobData) {
-   jobData = await getAllJobs(req, res);
+  if (!jobData) {
+    jobData = await getAllJobs(req, res);
   }
   saveUserInfo(req, res);
-  
-  const cosineSimilarityMatrix = [];
+
+  const PreNormalizeDecisionTable = [];
+  maxLevel = 5;
+  maxExp = 7;
+  maxDate = 49;
+  maxTitle = 0;
   for (let i = 0; i < jobData.length; i++) {
-    let job = jobData[i];
-    //phan tu dau tien la id
-    cosineSimilarityMatrix.push([jobData[i].id]);
-    //duyet qua cac key trong object
-    for (let key in jobData[i]) {
-      if (key == "id" || key == "detailURL") continue;
-      let similarity = calculateCosineSimilarityFromRawString(
-        job[key],
-        userJob[key]
+    let standardTitleValue = calculateTitle(jobData[i].title, userJob.title);
+    let standardAddressValue = calculateAddress(
+      jobData[i].address,
+      userJob.address
+    );
+    let standardSalaryValue = calculateSalary(
+      convertSalary(jobData[i].salary),
+      parseInt(userJob.salary)
+    );
+    let standardLevelValue = calculateLevel(
+      convertLevel(jobData[i].level),
+      convertLevel(userJob.level)
+    );
+    let standardExperienceValue = calculateExperience(
+      convertExperience(jobData[i].experience),
+      convertExperience(userJob.experience)
+    );
+    let standardPostedTimeValue = calculateTimeDistance(
+      jobData[i].refreshedTime
+    );
+    // normalize
+    standardLevelValue = (maxLevel - standardLevelValue) / maxLevel;
+    standardExperienceValue = (maxExp - standardExperienceValue) / maxExp;
+    standardPostedTimeValue = (maxDate - standardPostedTimeValue) / maxDate;
+    PreNormalizeDecisionTable.push(
+      new JobDecisionClass(
+        standardTitleValue,
+        standardAddressValue,
+        standardSalaryValue,
+        standardLevelValue,
+        standardExperienceValue,
+        standardPostedTimeValue,
+        jobData[i].detailURL
+      )
+    );
+    //maintain maxValue for lv, exp and date
+    if (maxDate < standardPostedTimeValue) maxDate = standardPostedTimeValue;
+    if (maxExp < standardExperienceValue) maxExp = standardExperienceValue;
+    if (maxLevel < standardLevelValue) maxLevel = standardLevelValue;
+    if (maxTitle < standardTitleValue) maxTitle = standardTitleValue;
+  } // decision table is now standardized
+  //optimized solution is jobDecisionClass(1,1,1,1,1,1....) and the worst one is (0,0,0,0,0,0...) so it's useless to compute based on topsis
+
+  for (let i = 0; i < jobData.length; i++) {
+    // if (PreNormalizeDecisionTable[i].title > 0.95) console.log(PreNormalizeDecisionTable[i]);
+      PreNormalizeDecisionTable[i].score = Math.sqrt(
+        weight[0] *
+          weight[0] *
+          (1 - PreNormalizeDecisionTable[i].title / maxTitle) *
+          (1 - PreNormalizeDecisionTable[i].title / maxTitle) +
+          weight[1] *
+            weight[1] *
+            (1 - PreNormalizeDecisionTable[i].address) *
+            (1 - PreNormalizeDecisionTable[i].address) +
+          weight[2] *
+            weight[2] *
+            (1 - PreNormalizeDecisionTable[i].salary) *
+            (1 - PreNormalizeDecisionTable[i].salary) +
+          weight[3] *
+            weight[3] *
+            (1 - PreNormalizeDecisionTable[i].level) *
+            (1 - PreNormalizeDecisionTable[i].level) +
+          weight[4] *
+            weight[4] *
+            (1 - PreNormalizeDecisionTable[i].experience) *
+            (1 - PreNormalizeDecisionTable[i].experience) +
+          weight[5] *
+            weight[5] *
+            (1 - PreNormalizeDecisionTable[i].postedTime) *
+            (1 - PreNormalizeDecisionTable[i].postedTime)
       );
-      if (key == "major") {
-        similarity *= 4;
-      }
-      //tinh do do tuong dong giua hai diem tren ban do
-      if (key === "address") {
-        // let distance = await calculateDistance(userJob[key], job[key])
-        // console.log(distance)
-        // sigma = 1 //sigma cang cao su khac biet khoang cach cang nho
-        // similarity = 3*Math.exp(-Math.pow(distance, 2) / (2 * Math.pow(sigma, 2)));
-        similarity =
-          10 *
-          calculateCosineSimilarityFromRawString(job[key], userJob[key], true);
-      }
-      //xu li cho requirements
-      //format: <edu, exp>
-      if (key === "experience") {
-        let requirements = userJob[key];
-        let [education, experience] = requirements.split(",");
-        if (
-          requirements.includes(education) &&
-          requirements.includes(experience)
-        ) {
-          similarity = 2;
-        } else if (
-          requirements.includes(education) ||
-          requirements.includes(experience)
-        ) {
-          similarity = 1;
-        } else {
-          similarity = 0;
-        }
-      }
-
-      cosineSimilarityMatrix[i].push(similarity);
-    }
   }
-
-  //tinh tong cua do tuong dong
-  /// tuong lai them weight vao tung property
-  let sumSimilarities = [];
-  for (let jobSimilarityMatrix of cosineSimilarityMatrix) {
-    let sum = 0;
-    for (let i = 0; i < jobSimilarityMatrix.length; i++) {
-      if (i == 0) continue;
-      sum += jobSimilarityMatrix[i];
-    }
-    sumSimilarities.push({ id: jobSimilarityMatrix[0], sumSimilarity: sum });
-  }
-  sumSimilarities = sumSimilarities.sort(
-    (a, b) => b["sumSimilarity"] - a["sumSimilarity"]
-  );
-  jobsToReturn = sumSimilarities.slice(0, 5);
-
-  //chon cong viec co sum similarity cao nhat ( hoac top cao nhat ) trong sumSimilarities
-  //const maxSimilarity = sumSimilarities.reduce((max, obj) => (obj.sumSimilarity > max.sumSimilarity ? obj : max), sumSimilarities[0]);
-  //dua ra cong viec do
-  // console.log(maxSimilarity)
-  // Thuộc tính bạn muốn so sánh (ví dụ: 'id')
-  let propertyName = "id";
-
-  // Lọc các đối tượng có chung thuộc tính trong hai mảng
-  let jobs = jobData.filter((obj1) =>
-    jobsToReturn.some((obj2) => obj1[propertyName] === obj2[propertyName])
-  );
-  // const jobs = jobData.map(job => {
-  //     for(let jobObject of jobsToReturn) {
-  //         if(jobObject.id == job.id) return job;
-  //     }
-  // })
-
-  // // Chọn công việc có sự tương đồng cao nhất
-  // const recommendedJobIndex = similarities.indexOf(Math.max(...similarities));
-  // const recommendedJob = jobData[recommendedJobIndex];
-
-  res.json(jobs);
+  const sortedDecisionTable =  PreNormalizeDecisionTable.sort((a, b) => {
+    // if(a.title === b.title) return 0;
+    // if(a.title === 0 || b.title === 0) {
+    //   return a.title === 0 ? 1 : -1
+    // }
+    return a.score - b.score;
+  });
+  console.log(sortedDecisionTable[0]);
+  console.log(sortedDecisionTable[1]);
+  console.log(PreNormalizeDecisionTable.length);
+  res.json([sortedDecisionTable[0], sortedDecisionTable[1]]);
 });
 
 const PORT = 5000;

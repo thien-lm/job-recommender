@@ -21,14 +21,31 @@ const {
   convertLevel,
 } = require("./utils/ConvertPropertyToStandardValue");
 const JobDecisionClass = require("./JobDecisionClass");
+const calculateWeightToApply = require("./utils/CalculateWeight")
 
 app.use(bodyParser.json());
 connect();
 
 let jobData;
-const weight = [0.3, 0.2, 0.2, 0.15, 0.1, 0.05];
+let weight = [0.3, 0.2, 0.2, 0.15, 0.1, 0.05];
 // API endpoint để gợi ý công việc dựa trên mô tả công việc
 app.post("/suggest-job", async (req, res) => {
+  console.log("params is: ", req.query)
+  //calculate weight
+  citerialMatrix = [
+    [1, parseInt(req.query.TvS), parseInt(req.query.TvA)],
+    [1/parseInt(req.query.TvS), 1, parseInt(req.query.SvA)],
+    [1/parseInt(req.query.TvA), 1/parseInt(req.query.SvA), 1],
+  ];
+
+  try{
+    weight = calculateWeightToApply(citerialMatrix);
+  }
+  catch(error) {
+    console.log(error)
+  }
+  console.log(weight)
+
   const userJob = req.body;
   //neu da co danh sach cong viec thi khong lay ra tu database nua
   if (!jobData) {
@@ -113,18 +130,16 @@ app.post("/suggest-job", async (req, res) => {
             (1 - PreNormalizeDecisionTable[i].postedTime) *
             (1 - PreNormalizeDecisionTable[i].postedTime)
       );
+      jobData[i].score = PreNormalizeDecisionTable[i].score;
   }
   const sortedDecisionTable =  PreNormalizeDecisionTable.sort((a, b) => {
-    // if(a.title === b.title) return 0;
-    // if(a.title === 0 || b.title === 0) {
-    //   return a.title === 0 ? 1 : -1
-    // }
     return a.score - b.score;
   });
-  console.log(sortedDecisionTable[0]);
-  console.log(sortedDecisionTable[1]);
+  jobData.sort((a, b) => {
+    return a.score - b.score;
+  });
   console.log(PreNormalizeDecisionTable.length);
-  res.json([sortedDecisionTable[0], sortedDecisionTable[1]]);
+  res.json([sortedDecisionTable[0], jobData[0]]);
 });
 
 const PORT = 5000;

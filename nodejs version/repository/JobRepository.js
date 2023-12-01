@@ -18,6 +18,7 @@ const convertOriginalJobObject = (job) => {
     convertedJob.major = job.skills_arr.join(" ")
     convertedJob.refreshedTime = job.refreshed.date
     convertedJob.detailURL = job.detail_url
+    convertedJob.score = -1;
     return convertedJob
 
 } 

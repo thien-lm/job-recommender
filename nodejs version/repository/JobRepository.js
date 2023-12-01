@@ -10,7 +10,7 @@ const convertOriginalJobObject = (job) => {
     convertedJob.id = job.id
     convertedJob.title = job.title
     convertedJob.address = job.addresses.full_addresses[0]
-    convertedJob.salary = job.salary.min
+    convertedJob.salary = job.salary.max
     convertedJob.experience = job.requirements_arr.flatMap(obj => Object.values(obj?.value)).join(" ");
     convertedJob.typeOfCompany = job.company.industries_str
     convertedJob.level = job.job_levels_str

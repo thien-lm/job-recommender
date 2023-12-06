@@ -24,12 +24,12 @@ function calculateWeightToApply(criteriaMatrix) {
   let weight = calculateWeights(criteriaMatrix);
   let actualWeight = [];
   let minWeight = Math.min(weight[0], weight[1], weight[2])
-  let divider = weight[0] + weight[1] + weight[2] + 2 * 0.15 + 0.05;
+  let divider = weight[0] + weight[1] + weight[2] + 0.4 + 0.05;
   actualWeight.push(weight[0] / divider);
   actualWeight.push(weight[1] / divider);
   actualWeight.push(weight[2] / divider);
-  actualWeight.push(0.15 / divider);
-  actualWeight.push(0.15 / divider);
+  actualWeight.push(0.2 / divider);
+  actualWeight.push(0.2 / divider);
   actualWeight.push(0.05 / divider);
   return actualWeight;
 }

@@ -1,11 +1,14 @@
 const { mod } = require("mathjs");
 
 const calculateCosineSimilarityFromRawString = (str1, str2, isAddress = false) => {
+  
     str1 = stringFilter(str1)
     str2 = stringFilter(str2)
+    if(str1.includes(str2)) return 1;
     // console.log(str1, str2)
     let str1Words;
     let str2Words;
+    
     if(!isAddress) {
       str1Words = str1.trim().split(' ').map(omitPunctuations).map(toLowercase);
       str2Words = str2.trim().split(' ').map(omitPunctuations).map(toLowercase);      

@@ -14,10 +14,10 @@ const calculateAddress = (companyAddress, userAddress) => {
 };
 
 const calculateSalary = (companySalary, userSalary) => {
-  if (companySalary >= 2 * userSalary) return 1;
-  if (companySalary === "0") return 0.25;
-  if (companySalary === "" || companySalary < userSalary) return 0;
-  return (companySalary - userSalary) / userSalary;
+  if (companySalary >= userSalary) return 1;
+  if (companySalary === "0") return 0.5;
+  if (companySalary === "" ) return 0;
+  return 1 - Math.abs(companySalary - userSalary) / userSalary;
 };
 
 const calculateLevel = (companyLevel, userLevel) => {

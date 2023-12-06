@@ -29,13 +29,19 @@ connect();
 let jobData;
 let weight = [0.3, 0.2, 0.2, 0.15, 0.1, 0.05];
 // API endpoint để gợi ý công việc dựa trên mô tả công việc
+
+app.get("/", (req, res) => {
+  res.end("Hello, client!");
+})
+
+
 app.post("/suggest-job", async (req, res) => {
   console.log("params is: ", req.query)
   //calculate weight
   citerialMatrix = [
-    [1, parseInt(req.query.TvS), parseInt(req.query.TvA)],
-    [1/parseInt(req.query.TvS), 1, parseInt(req.query.SvA)],
-    [1/parseInt(req.query.TvA), 1/parseInt(req.query.SvA), 1],
+    [1, parseFloat(req.query.TvS), parseFloat(req.query.TvA)],
+    [1/parseFloat(req.query.TvS), 1, parseFloat(req.query.SvA)],
+    [1/parseFloat(req.query.TvA), 1/parseFloat(req.query.SvA), 1],
   ];
 
   try{
@@ -139,7 +145,12 @@ app.post("/suggest-job", async (req, res) => {
     return a.score - b.score;
   });
   console.log(PreNormalizeDecisionTable.length);
-  res.json([sortedDecisionTable[0], jobData[0]]);
+  res.json([
+    sortedDecisionTable[0],
+    jobData[0],
+    sortedDecisionTable[1],
+    jobData[1],
+  ]);
 });
 
 const PORT = 5000;
@@ -159,3 +170,5 @@ app.all("/suggest-job", function (req, res, next) {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+module.exports = app;

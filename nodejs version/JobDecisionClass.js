@@ -1,20 +1,20 @@
 class JobDecisionClass {
   constructor(
-    title,
-    address,
-    salary,
-    level,
-    experience,
-    postedTime,
+    title_score,
+    address_score,
+    salary_score,
+    level_score,
+    experience_score,
+    postedTime_score,
     url,
     score = 0
   ) {
-    this.title = title;
-    this.address = address;
-    this.salary = salary;
-    this.level = level;
-    this.experience = experience;
-    this.postedTime = postedTime;
+    this.title_score = title_score;
+    this.address_score = address_score;
+    this.salary_score = salary_score;
+    this.level_score = level_score;
+    this.experience_score = experience_score;
+    this.postedTime_score = postedTime_score;
     this.url = url;
     this.score = score;
   }

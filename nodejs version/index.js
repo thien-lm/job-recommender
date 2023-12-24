@@ -30,6 +30,19 @@ let jobData;
 let weight = [0.3, 0.2, 0.2, 0.15, 0.1, 0.05];
 // API endpoint để gợi ý công việc dựa trên mô tả công việc
 
+// app.use(
+//   cors({
+//     origin: "http://localhost:6000",
+//   })
+// );
+
+// app.all("/", function (req, res, next) {
+//   res.header("Access-Control-Allow-Origin", "*");
+//   res.header("Access-Control-Allow-Headers", "X-Requested-With");
+//   next();
+// });
+app.use(cors());
+
 app.get("/", (req, res) => {
   res.end("Hello, client!");
 })
@@ -64,6 +77,7 @@ app.post("/suggest-job", async (req, res) => {
   maxExp = 7;
   maxDate = 49;
   maxTitle = 0;
+  try{
   for (let i = 0; i < jobData.length; i++) {
     let standardTitleValue = calculateTitle(jobData[i].title, userJob.title);
     let standardAddressValue = calculateAddress(
@@ -113,28 +127,28 @@ app.post("/suggest-job", async (req, res) => {
       PreNormalizeDecisionTable[i].score = Math.sqrt(
         weight[0] *
           weight[0] *
-          (1 - PreNormalizeDecisionTable[i].title / maxTitle) *
-          (1 - PreNormalizeDecisionTable[i].title / maxTitle) +
+          (1 - PreNormalizeDecisionTable[i].title_score / maxTitle) *
+          (1 - PreNormalizeDecisionTable[i].title_score / maxTitle) +
           weight[1] *
             weight[1] *
-            (1 - PreNormalizeDecisionTable[i].address) *
-            (1 - PreNormalizeDecisionTable[i].address) +
+            (1 - PreNormalizeDecisionTable[i].address_score) *
+            (1 - PreNormalizeDecisionTable[i].address_score) +
           weight[2] *
             weight[2] *
-            (1 - PreNormalizeDecisionTable[i].salary) *
-            (1 - PreNormalizeDecisionTable[i].salary) +
+            (1 - PreNormalizeDecisionTable[i].salary_score) *
+            (1 - PreNormalizeDecisionTable[i].salary_score) +
           weight[3] *
             weight[3] *
-            (1 - PreNormalizeDecisionTable[i].level) *
-            (1 - PreNormalizeDecisionTable[i].level) +
+            (1 - PreNormalizeDecisionTable[i].level_score) *
+            (1 - PreNormalizeDecisionTable[i].level_score) +
           weight[4] *
             weight[4] *
-            (1 - PreNormalizeDecisionTable[i].experience) *
-            (1 - PreNormalizeDecisionTable[i].experience) +
+            (1 - PreNormalizeDecisionTable[i].experience_score) *
+            (1 - PreNormalizeDecisionTable[i].experience_score) +
           weight[5] *
             weight[5] *
-            (1 - PreNormalizeDecisionTable[i].postedTime) *
-            (1 - PreNormalizeDecisionTable[i].postedTime)
+            (1 - PreNormalizeDecisionTable[i].postedTime_score) *
+            (1 - PreNormalizeDecisionTable[i].postedTime_score)
       );
       jobData[i].score = PreNormalizeDecisionTable[i].score;
   }
@@ -145,27 +159,19 @@ app.post("/suggest-job", async (req, res) => {
     return a.score - b.score;
   });
   console.log(PreNormalizeDecisionTable.length);
-  res.json([
-    sortedDecisionTable[0],
-    jobData[0],
-    sortedDecisionTable[1],
-    jobData[1],
-  ]);
+  res.json(
+    {...sortedDecisionTable[0],
+    ...jobData[0]
+    }
+  ); 
+  }
+  catch(exception) {
+    res.json("404")
+  }
 });
 
 const PORT = 5000;
 
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-  })
-);
-
-app.all("/suggest-job", function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "X-Requested-With");
-  next();
-});
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

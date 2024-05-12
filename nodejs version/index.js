@@ -14,6 +14,7 @@ const {
   calculateSalary,
   calculateExperience,
   calculateTimeDistance,
+  calculateSkillDistance
 } = require("./utils/CalculatingValueForDecisionTable");
 const {
   convertSalary,
@@ -27,7 +28,7 @@ app.use(bodyParser.json());
 connect();
 
 let jobData;
-let weight = [0.3, 0.2, 0.2, 0.15, 0.1, 0.05];
+let hard_set_weight = [0.3, 0.2, 0.2, 0.15, 0.1, 0.05];
 // API endpoint để gợi ý công việc dựa trên mô tả công việc
 
 // app.use(
@@ -64,7 +65,9 @@ app.post("/suggest-job", async (req, res) => {
     console.log(error)
   }
   console.log(weight)
-
+  if(isNaN(weight[0])) {
+    weight = hard_set_weight
+  }
   const userJob = req.body;
   //neu da co danh sach cong viec thi khong lay ra tu database nua
   if (!jobData) {
@@ -99,6 +102,11 @@ app.post("/suggest-job", async (req, res) => {
     let standardPostedTimeValue = calculateTimeDistance(
       jobData[i].refreshedTime
     );
+
+    let standardSkillValue = calculateSkillDistance(
+      userJob.skills, jobData[i].skills
+    )
+
     // normalize
     standardLevelValue = (maxLevel - standardLevelValue) / maxLevel;
     standardExperienceValue = (maxExp - standardExperienceValue) / maxExp;
@@ -111,6 +119,7 @@ app.post("/suggest-job", async (req, res) => {
         standardLevelValue,
         standardExperienceValue,
         standardPostedTimeValue,
+        standardSkillValue,
         jobData[i].detailURL
       )
     );
@@ -148,8 +157,11 @@ app.post("/suggest-job", async (req, res) => {
           weight[5] *
             weight[5] *
             (1 - PreNormalizeDecisionTable[i].postedTime_score) *
-            (1 - PreNormalizeDecisionTable[i].postedTime_score)
+            (1 - PreNormalizeDecisionTable[i].postedTime_score) +
+            (1 - PreNormalizeDecisionTable[i].skill_score) * //section of skill
+            (1 - PreNormalizeDecisionTable[i].skill_score) * 0.16
       );
+      console.log(weight)
       jobData[i].score = PreNormalizeDecisionTable[i].score;
   }
   const sortedDecisionTable =  PreNormalizeDecisionTable.sort((a, b) => {
@@ -166,6 +178,7 @@ app.post("/suggest-job", async (req, res) => {
   ); 
   }
   catch(exception) {
+    console.log(exception)
     res.json("404")
   }
 });

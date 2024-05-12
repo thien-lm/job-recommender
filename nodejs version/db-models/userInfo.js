@@ -10,6 +10,7 @@ const userJobSchema = new Schema({
   level: String,
   jobType: String,
   major: String,
+  skills: [String],
   refreshedTime: String,
   detailURL: String
 });

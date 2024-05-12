@@ -41,6 +41,18 @@ const calculateTimeDistance = (postedTime) => {
   return Math.abs(daysDifference) > 49 ? 49 : Math.abs(daysDifference);
 };
 
+const calculateSkillDistance = (userSkills, companySkills) => {
+  let matchedSkill = 0
+  for (let userSkill of userSkills) {
+    for (let companySkill of companySkills) {
+      if (userSkill.toLowerCase() == companySkill.toLowerCase()) {
+        matchedSkill++
+      } 
+    }
+  }
+  return matchedSkill/(companySkills.length)
+}
+
 module.exports = {
   calculateAddress,
   calculateExperience,
@@ -48,4 +60,5 @@ module.exports = {
   calculateLevel,
   calculateTitle,
   calculateSalary,
+  calculateSkillDistance
 };

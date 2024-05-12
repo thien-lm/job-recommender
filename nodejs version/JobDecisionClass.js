@@ -6,6 +6,7 @@ class JobDecisionClass {
     level_score,
     experience_score,
     postedTime_score,
+    skill_score,
     url,
     score = 0
   ) {
@@ -15,6 +16,7 @@ class JobDecisionClass {
     this.level_score = level_score;
     this.experience_score = experience_score;
     this.postedTime_score = postedTime_score;
+    this.skill_score = skill_score;
     this.url = url;
     this.score = score;
   }
@@ -26,6 +28,7 @@ class JobDecisionClass {
     console.log(`Level: ${this.level}`);
     console.log(`Experience: ${this.experience}`);
     console.log(`Posted Time: ${this.postedTime}`);
+    console.log(`Skill: ${this.skill}`)
     console.log(`URL: ${this.url}`);
   }
 }

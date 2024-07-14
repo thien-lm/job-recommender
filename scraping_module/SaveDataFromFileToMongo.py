@@ -3,7 +3,7 @@ from pymongo import MongoClient
 #open json file
 import json
 # Kết nối đến MongoDB (mặc định sẽ kết nối đến localhost:27017)
-client = MongoClient('mongodb://localhost:27017/')
+client = MongoClient('mongodb+srv://abcdef:111111111111a@cluster0.atwn6ip.mongodb.net')
 db = client['job-recommender-database']
 collection = db['jobs']
 # Chọn cơ sở dữ liệu (nếu chưa tồn tại, nó sẽ tự động được tạo ra)

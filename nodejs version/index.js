@@ -64,7 +64,7 @@ app.post("/suggest-job", async (req, res) => {
   catch(error) {
     console.log(error)
   }
-  console.log(weight)
+
   if(isNaN(weight[0])) {
     weight = hard_set_weight
   }
@@ -127,7 +127,7 @@ app.post("/suggest-job", async (req, res) => {
     if (maxDate < standardPostedTimeValue) maxDate = standardPostedTimeValue;
     if (maxExp < standardExperienceValue) maxExp = standardExperienceValue;
     if (maxLevel < standardLevelValue) maxLevel = standardLevelValue;
-    if (maxTitle < standardTitleValue) maxTitle = standardTitleValue;
+    if (maxTitle > standardTitleValue) maxTitle = standardTitleValue;
   } // decision table is now standardized
   //optimized solution is jobDecisionClass(1,1,1,1,1,1....) and the worst one is (0,0,0,0,0,0...) so it's useless to compute based on topsis
 
@@ -136,8 +136,8 @@ app.post("/suggest-job", async (req, res) => {
       PreNormalizeDecisionTable[i].score = Math.sqrt(
         weight[0] *
           weight[0] *
-          (1 - PreNormalizeDecisionTable[i].title_score / maxTitle) *
-          (1 - PreNormalizeDecisionTable[i].title_score / maxTitle) +
+          (1 - 1/(PreNormalizeDecisionTable[i].title_score / maxTitle)) *
+          (1 - 1/(PreNormalizeDecisionTable[i].title_score / maxTitle)) +
           weight[1] *
             weight[1] *
             (1 - PreNormalizeDecisionTable[i].address_score) *
@@ -161,7 +161,7 @@ app.post("/suggest-job", async (req, res) => {
             (1 - PreNormalizeDecisionTable[i].skill_score) * //section of skill
             (1 - PreNormalizeDecisionTable[i].skill_score) * 0.16
       );
-      console.log(weight)
+
       jobData[i].score = PreNormalizeDecisionTable[i].score;
   }
   const sortedDecisionTable =  PreNormalizeDecisionTable.sort((a, b) => {
@@ -171,11 +171,13 @@ app.post("/suggest-job", async (req, res) => {
     return a.score - b.score;
   });
   console.log(PreNormalizeDecisionTable.length);
-  res.json(
-    {...sortedDecisionTable[0],
-    ...jobData[0]
-    }
-  ); 
+  res.json([
+    { ...sortedDecisionTable[0], ...jobData[0] },
+    { ...sortedDecisionTable[1], ...jobData[1] },
+    { ...sortedDecisionTable[2], ...jobData[2] },
+    { ...sortedDecisionTable[3], ...jobData[3] },
+    { ...sortedDecisionTable[4], ...jobData[4] },
+  ]); 
   }
   catch(exception) {
     console.log(exception)

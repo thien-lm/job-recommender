@@ -1,7 +1,7 @@
 const calculateCosineSimilarityFromRawString = require("./CosineSimilarity");
-
+const levenshteinDistance = require("./levenshtein")
 const calculateTitle = (companyJobTitle, userJobtitle) => {
-  return calculateCosineSimilarityFromRawString(companyJobTitle, userJobtitle);
+  return levenshteinDistance(companyJobTitle, userJobtitle) + 1;
 };
 
 const calculateAddress = (companyAddress, userAddress) => {
